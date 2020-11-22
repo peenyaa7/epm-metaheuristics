@@ -18,6 +18,7 @@ package es.ujaen.metaheuristicas;
 
 import es.ujaen.metaheuristicas.attributes.Clase;
 import es.ujaen.metaheuristicas.evaluator.Evaluator;
+import es.ujaen.metaheuristicas.exceptions.InvalidFuzzySetException;
 import es.ujaen.metaheuristicas.fuzzy.FuzzySet;
 import es.ujaen.metaheuristicas.fuzzy.TriangularFuzzySet;
 import es.ujaen.metaheuristicas.qualitymeasures.QualityMeasure;
@@ -33,6 +34,8 @@ import weka.core.converters.ConverterUtils.DataSource;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Class the defines an Emerging Pattern Mining using Fuzzy Sets for the
@@ -408,7 +411,12 @@ public class Problema implements BinaryProblem {
             }
 
             // Create de triangular fuzzy set
-            TriangularFuzzySet set = new TriangularFuzzySet(definitions, 1.0);
+            TriangularFuzzySet set = null;
+            try {
+                set = new TriangularFuzzySet(definitions, 1.0);
+            } catch (InvalidFuzzySetException ex) {
+                Logger.getLogger(Problema.class.getName()).log(Level.SEVERE, null, ex);
+            }
             sets.add(set);
 
             cutPoint += marca;

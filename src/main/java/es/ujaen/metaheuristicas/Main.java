@@ -16,7 +16,7 @@
  */
 package es.ujaen.metaheuristicas;
 
-import com.sun.istack.internal.logging.Logger;
+
 import es.ujaen.metaheuristicas.evaluator.EvaluatorIndDNF;
 import es.ujaen.metaheuristicas.fuzzy.FuzzySet;
 import es.ujaen.metaheuristicas.fuzzy.TriangularFuzzySet;
@@ -30,6 +30,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.uma.jmetal.algorithm.Algorithm;
 import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAII;
@@ -61,7 +62,7 @@ import picocli.CommandLine.Command;
         description = "Execute the proposed memetic algorithm.")
 public class Main implements Callable<Integer> {
 
-    private final Logger logger = Logger.getLogger(Main.class);
+    private final Logger logger = Logger.getLogger("Main");
 
     @Parameters(index = "0", description = "The training file to use.", paramLabel = "trainingFile")
     private String trainingFile = "";
