@@ -103,7 +103,7 @@ public final class ResultWriter {
         firstTime = true;
 
         if (overwrite) {
-            File[] a = {new File(tra), new File(tra + "_reg"), new File("all_measures.txt")};
+            File[] a = {new File(tra), new File(tra + "_reg"), new File(tst + "_testMeasures.txt")};
             for (File f : a) {
                 if (f.exists()) {
                     f.delete();
@@ -193,7 +193,7 @@ public final class ResultWriter {
                     content += "\n";
                 }
             }
-            Files.addToFile("all_measures.txt", content);
+            Files.addToFile(test + "_testMeasures.txt", content);
 
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
             Logger.getLogger(ResultWriter.class.getName()).log(Level.SEVERE, null, ex);

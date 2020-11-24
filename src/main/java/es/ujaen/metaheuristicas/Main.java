@@ -120,7 +120,7 @@ public class Main implements Callable<Integer> {
         // Set Dominance Comparator: WARNING! jMetal MINIMISES objectives, whereas we  MAXIMISE THEM. It is mandatory to REVERSE THIS COMPARATOR !
         DominanceComparator<BinarySolution> dominanceComparator = new DominanceComparator<>();
 
-        // The full population
+        // The full population (the one with patterns for all classes)
         List<BinarySolution> fullPopulation = new ArrayList<>();
         for (int clazz = 0; clazz < problem.getNumberOfClasses(); clazz++) {  // Run the algorithm for each class of the problem
 
@@ -143,6 +143,7 @@ public class Main implements Callable<Integer> {
             // Get the results
             List<BinarySolution> nonDominatedSolutions = SolutionListUtils.getNondominatedSolutions(algorithm.getResult());
             
+            // Remove repeated patterns and add them to the final result
             fullPopulation.addAll(removeRepeatedPatterns(nonDominatedSolutions, problem));
 
             long computingTime = algorithmRunner.getComputingTime();
@@ -150,12 +151,12 @@ public class Main implements Callable<Integer> {
             logger.info("Total execution time: " + computingTime + "ms");
         }
 
-        // Save results filts
+        // TODO: test Save results filts
         logger.info("Testing results...");
-        ResultWriter writer = new ResultWriter("results.txt", testFile, fullPopulation, problem, true);
+        ResultWriter writer = new ResultWriter(trainingFile + "_tra.txt", testFile, fullPopulation, problem, true);
         writer.writeTrainingMeasures();
         
-
+        logger.info("Finished Execution.");
         return 0;
     }
     
