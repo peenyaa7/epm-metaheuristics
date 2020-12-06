@@ -25,8 +25,10 @@ import weka.core.Instances;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.uma.jmetal.solution.BinarySolution;
+import org.uma.jmetal.util.evaluator.impl.SequentialSolutionListEvaluator;
 
-public abstract class Evaluator {
+public abstract class Evaluator extends SequentialSolutionListEvaluator<BinarySolution>{
 
     public ArrayList<QualityMeasure> getObjectives() {
         return objectives;

@@ -16,6 +16,7 @@
  */
 package es.ujaen.metaheuristicas;
 
+import java.util.Iterator;
 import java.util.List;
 import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAII;
 import org.uma.jmetal.operator.CrossoverOperator;
@@ -50,7 +51,10 @@ public class MyMemeticAlgorithm extends NSGAII<BinarySolution>{
     protected List<BinarySolution> replacement(List<BinarySolution> population, List<BinarySolution> offspringPopulation) {
         
         // AQUI DEBEMOS JUGAR CON offspringPopulation aplicando la BL.
-        
+        //LocalSearch.run(offspringPopulation);
+        for (BinarySolution i : offspringPopulation) {
+            System.out.println(i.toString());
+        }
         
         // Finalmente, debemos llamar SIEMPRE a super() para realizar el proceso de reemplazo original
         return super.replacement(population, offspringPopulation); //To change body of generated methods, choose Tools | Templates.
