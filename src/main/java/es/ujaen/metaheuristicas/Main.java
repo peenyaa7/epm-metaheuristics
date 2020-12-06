@@ -40,6 +40,7 @@ import org.uma.jmetal.operator.MutationOperator;
 import org.uma.jmetal.operator.SelectionOperator;
 import org.uma.jmetal.operator.impl.selection.BinaryTournamentSelection;
 import org.uma.jmetal.problem.BinaryProblem;
+import org.uma.jmetal.problem.Problem;
 import org.uma.jmetal.solution.BinarySolution;
 import org.uma.jmetal.util.AlgorithmRunner;
 import org.uma.jmetal.util.ProblemUtils;
@@ -48,6 +49,9 @@ import org.uma.jmetal.util.SolutionUtils;
 import org.uma.jmetal.util.archive.impl.NonDominatedSolutionListArchive;
 import org.uma.jmetal.util.comparator.DominanceComparator;
 import org.uma.jmetal.util.comparator.RankingAndCrowdingDistanceComparator;
+import org.uma.jmetal.util.evaluator.SolutionListEvaluator;
+import org.uma.jmetal.util.evaluator.impl.MultithreadedSolutionListEvaluator;
+import org.uma.jmetal.util.evaluator.impl.SequentialSolutionListEvaluator;
 import org.uma.jmetal.util.pseudorandom.JMetalRandom;
 import picocli.CommandLine;
 import picocli.CommandLine.Parameters;
@@ -119,7 +123,12 @@ public class Main implements Callable<Integer> {
 
         // Set Dominance Comparator: WARNING! jMetal MINIMISES objectives, whereas we  MAXIMISE THEM. It is mandatory to REVERSE THIS COMPARATOR !
         DominanceComparator<BinarySolution> dominanceComparator = new DominanceComparator<>();
+        
+        //SequentialSolutionListEvaluator<BinarySolution> listEvaluator = new SequentialSolutionListEvaluatorImpl();
+        //listEvaluator = (SequentialSolutionListEvaluator<BinarySolution>) problem.getEvaluator();
+        //SequentialSolutionListEvaluator<BinarySolution> listEvaluator = (SequentialSolutionListEvaluator<BinarySolution>) (SolutionListEvaluator<BinarySolution>) problem.getEvaluator();
 
+                
         // The full population (the one with patterns for all classes)
         List<BinarySolution> fullPopulation = new ArrayList<>();
         for (int clazz = 0; clazz < problem.getNumberOfClasses(); clazz++) {  // Run the algorithm for each class of the problem
@@ -131,11 +140,7 @@ public class Main implements Callable<Integer> {
 
             // Create the algorithm
             // NOTE:  Replace this with your own ALGORITHM CONSTRUCTOR !!!!!
-            NSGAII<BinarySolution> algorithm = new NSGAIIBuilder<BinarySolution>(problem, (CrossoverOperator) crossover, mutation, populationSize)
-                    .setSelectionOperator(selection)
-                    .setMaxEvaluations(25000)
-                    .setDominanceComparator(dominanceComparator.reversed())
-                    .build();
+            MyMemeticAlgorithm algorithm = new MyMemeticAlgorithm(problem, maxEvaluations, populationSize, populationSize, populationSize, (CrossoverOperator) crossover, mutation, selection,  (SequentialSolutionListEvaluator<BinarySolution>) problem.getEvaluator());
 
             // Execute the algorithm
             AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
@@ -233,6 +238,22 @@ public class Main implements Callable<Integer> {
         // The logic of the main() method must be implemented in the call() method.
         int exitCode = new CommandLine(new Main()).execute(args);
         System.exit(exitCode);
+    }
+
+    private static class SequentialSolutionListEvaluatorImpl extends SequentialSolutionListEvaluator<BinarySolution> {
+
+        public SequentialSolutionListEvaluatorImpl() {
+        }
+
+        @Override
+        public List<BinarySolution> evaluate(List<BinarySolution> list, Problem<BinarySolution> prblm) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public void shutdown() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
     }
 
 }
