@@ -22,8 +22,11 @@ import es.ujaen.metaheuristicas.fuzzy.FuzzySet;
 import es.ujaen.metaheuristicas.qualitymeasures.ContingencyTable;
 import es.ujaen.metaheuristicas.qualitymeasures.QualityMeasure;
 import es.ujaen.metaheuristicas.qualitymeasures.WRAccNorm;
+import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 import org.uma.jmetal.solution.BinarySolution;
+import org.uma.jmetal.util.binarySet.BinarySet;
 
 /**
  * Class that represents the local search algorithm for the improvement of the
@@ -38,6 +41,19 @@ public class LocalSearch {
      */
     private Problema problem;
     
+    private int maxIteraciones;
+    
+    /**
+     * Guardará la tenencia de cada BinarySet, de manera que se inicialice al
+     * 20% del total de variables del problema y, cuando el valor llegue a 0,
+     * se eliminará de la listaTabu
+     */
+    private Hashtable<BinarySet, Integer> listaTabu;
+    
+    /**
+     * Guarda las veces que sale un BinarySet
+     */
+    private Hashtable<BinarySet, Integer> memoriaLargoPlazo;
     
     /**
      * Default constructor with an associated problem
@@ -45,6 +61,9 @@ public class LocalSearch {
      */
     public LocalSearch(Problema problem){
         this.problem = problem;
+        this.maxIteraciones = 15000;
+        this.listaTabu = new Hashtable<>();
+        this.memoriaLargoPlazo = new Hashtable<>();
     }
     
     
@@ -57,9 +76,15 @@ public class LocalSearch {
      * @param evaluator             The patterns' evaluator
      * @return     A new set of LLs with new fuzzy definitions.
      */
-    public List<List<FuzzySet>> doLocalSearch(List<List<FuzzySet>> initialSolution, List<BinarySolution> currentPopulation, EvaluatorIndDNF evaluator) {
+    public List<BinarySolution> doLocalSearch(List<List<FuzzySet>> initialSolution, List<BinarySolution> currentPopulation, EvaluatorIndDNF evaluator) {
         
-                
+        int n = 0;
+        for (BinarySolution binarySolution : currentPopulation) {
+            System.out.println(n + binarySolution.toString());
+            n++;
+        }
+        
+        
         /**
          * AQUI ES DONDE DEBE DE IR VUESTRO CÓDIGO RELATIVO A LA CREACIÓN DE UNA BÚSQUEDA LOCAL.
          * 
@@ -68,11 +93,18 @@ public class LocalSearch {
         double initialQuality = evaluate(initialSolution, currentPopulation, evaluator, new WRAccNorm());
         
         // IMPORTANTE: CLONAR INITIAL SOLUTION PARA QUE NO OCURRAN COSAS EXTRAÑAS.
-        //List<List<FuzzySet>> currentSolution = initialSolution.copy()
+        List<BinarySolution> currentSolution = new ArrayList<>(currentPopulation);
+        
+        
+        int numIteracionesSinMejora = 0;
+        
+        
+        // BL
+        
         
         
         // Return
-        return initialSolution;
+        return currentSolution;
     }
  
     
@@ -82,8 +114,16 @@ public class LocalSearch {
      * @param f
      * @return 
      */
-    public FuzzySet mutate(FuzzySet f){
+    public BinarySolution mutate(BinarySolution f){
         // TODO: AQUI DEBÉIS DE CREAR EL NUEVO VECINO PARA INCLUIRLO EN LA SOLUCIÓN
+        double probabilidad = 0.4;
+        for (int i = 0; i < f.getNumberOfVariables(); i++) {
+            for (int j = 0; j < f.getNumberOfBits(i); j++) {
+                if (Math.random() < probabilidad) {
+                    f.getVariableValue(i).flip(j);
+                }
+            }
+        }
         return f;
     }
     
