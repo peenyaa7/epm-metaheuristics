@@ -24,6 +24,7 @@ import es.ujaen.metaheuristicas.qualitymeasures.QualityMeasure;
 import es.ujaen.metaheuristicas.qualitymeasures.WRAcc;
 import es.ujaen.metaheuristicas.qualitymeasures.WRAccNorm;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -55,9 +56,19 @@ public class LocalSearch {
     private int vecinosAGenerar;
     
     /**
-     * 
+     * Probabilidad que tiene un bit de ser mutado en una variable
      */
-    private double probabilidadMutacion = 0.1;
+    private double probabilidadMutacion;
+    
+    /**
+     * Intentos máximos permitidos. Si se sobrepasa, se reinicializa.
+     */
+    private int maxIntentos;
+    
+    /**
+     * Tenencia inicial de los elementos de la lista tabú
+     */
+    private int tenenciaMaxima;
     
     private List<List<FuzzySet>> initialSolution;
     
@@ -82,9 +93,15 @@ public class LocalSearch {
      * @param problem 
      */
     public LocalSearch(Problema problem){
-        this.problem = problem;
+        
+        // Constantes
         this.maxIteraciones = 15000;
         this.vecinosAGenerar = 10;
+        this.probabilidadMutacion = 0.1;
+        this.maxIntentos = 100;
+        this.tenenciaMaxima = 5;
+        
+        this.problem = problem;
         this.listaTabu = new Hashtable<>();
         this.memoriaLargoPlazo = new Hashtable<>();
         
@@ -243,8 +260,10 @@ public class LocalSearch {
     
     private BinarySolution busquedaLocal(BinarySolution origen, double calidadOrigen){
         
-        
-        /* Por cada 'iteracion' en 'maxIteraciones':
+        /**
+         * PROCESO:
+         * 
+         * Por cada 'iteracion' en 'maxIteraciones':
          *      Generamos los 'vecinos' del 'agenteActual'
          *      Evaluamos los 'vecinos' y nos quedamos con el 'mejorVecino'
          *      Sustituimos el 'agenteActual' por el 'mejorVecino' (teniendo en cuenta, que puede ser peor)
@@ -260,12 +279,66 @@ public class LocalSearch {
         
         BinarySolution agenteActual = (BinarySolution) origen.copy();
         BinarySolution agenteElite = (BinarySolution) origen.copy();
+        double calidadElite = Double.MIN_VALUE;
+        int intentoMejora = 0;
+        
         
         for (int iteracion = 0; iteracion < maxIteraciones; iteracion++) {
             // Generamos los vecinos del 'agenteActual'
             
             //Método que saque N vecinos y se obtenga el mejor de ellos (sea mejor o no)
-            List<BinarySolution> neighbors = calculateNeighbors(agenteActual);
+            List<BinarySolution> neighbors = calculateNeighbors(agenteActual); // TODO --> Extraer el coste del vecino del método este
+                                                                               //          Además, si conseguimos extraer el coste de dentro,
+                                                                               //          podemos devolver solo al vecino (sin la lista)
+            
+            // Reducimos en 1 la tenencia de los elementos
+            List<BinarySet> candidatosASerEliminados = new ArrayList<>();
+            Enumeration<BinarySet> enumeration = listaTabu.keys();
+            while (enumeration.hasMoreElements()) {
+                
+                BinarySet key = enumeration.nextElement();
+                
+                Integer oldValue = listaTabu.get(key);
+                
+                if (oldValue <= 1) {
+                    candidatosASerEliminados.add(key);
+                } else {
+                    Integer check = listaTabu.replace(key, oldValue - 1);
+                    
+                    if (check != oldValue)
+                        System.out.println("ALGO RARISIMO");
+                }
+                
+                System.out.println(oldValue);
+                System.out.println("TENENCIAS: " + listaTabu.toString() + "\n\n\n\n\n\n\n");
+                
+            }
+            
+                                                                               
+            double calidad = evaluate(initialSolution, neighbors, evaluador, new WRAccNorm());
+            
+            // Si mejora, sustituimos las variables elites y reiniciamos el contador de intentos de mejora
+            if (calidad > calidadElite) {
+                System.out.println("VECINO MEJORADO | Calidad anterior: " + calidadElite + " | Calidad nueva: " + calidad);
+                agenteElite = neighbors.get(0);
+                calidadElite = calidad;
+                intentoMejora = 0;
+            }
+            
+            // Si no mejora, aumentamos el contador de intentos de mejora
+            else {
+                
+                intentoMejora++;
+                
+                // Ademas, comprobamos si no ha mejora en un número de iteraciones establecido
+                if (intentoMejora >= maxIntentos) {
+                    reinicializacion();
+                    intentoMejora = 0;
+                }
+                
+            }
+            
+            // TODO --> Actualizar la memoria a largo plazo
         }
         
         
@@ -291,67 +364,79 @@ public class LocalSearch {
         return agenteElite;
     }
     
+    
+    /**
+     * Reinicializa la búsqueda tabú
+     */
+    private void reinicializacion() {
+        // TODO --> Hacer el método.
+        System.out.println("Reinicialización");
+    }
+    
+    
     /**
      * Calcula los vecinos y los retorna. Ademas incluye en la listaTabu los binaryset prohibidos
      * @param currentBinarySolution Vecino de referencia
      * @return Una lista unitaria con el mejor vecino
      */
     private List<BinarySolution> calculateNeighbors(BinarySolution currentBinarySolution){
-        List<BinarySolution> ret = new ArrayList<BinarySolution>();
         
+        // ArrayList que retornaremos. Contendrá un solo vecino (el mejor)
+        List<BinarySolution> ret = new ArrayList<>();
+        
+        // Variable tabú candidata --> Variable que se meterá en la lista tabú
+        BinarySet variableTabuCandidata = null;
+        
+        // Inicializamos la mejor calidad al mínimo los flotantes
         double mejorCalidad = Double.MIN_VALUE;
         
-        /**
-         * Generados --> Guardará los BinarySet generados en el ambito local (para no generarlos de nuevo)
-         */
+        // Generados --> Guardará los BinarySet generados en el ambito local (para no generarlos de nuevo)
         List<BinarySet> generados = new ArrayList<>();
+        
+        // Rellenamos la lista de generados con las variables que tiene nuestro agente actual, para que los vecinos sean diferentes entre si.
         for (int i = 0; i < currentBinarySolution.getNumberOfVariables(); i++)
             generados.add(currentBinarySolution.getVariableValue(i));
         
+        
         for (int i = 0; i < vecinosAGenerar; i++) {
             
-            // Inicializamos al vecino
+            // Inicializamos al vecino actual haciendo una copia del agente
             BinarySolution vecino = (BinarySolution) currentBinarySolution.copy();
             
             // Elegimos de forma aleatoria la variable a modificar
             int posicionAleatoria = (int) (Math.random() * currentBinarySolution.getNumberOfVariables());
             
-            // Lo mutamos
-            //for (int j = 0; j < vecino.getNumberOfVariables(); j++) {
-            BinarySet aux = null;
+            // Mutamos dicha variable (considerando restricciones)
+            BinarySet variableMutada = null;
             do{
-                aux = mutate(vecino.getVariableValue(posicionAleatoria));
-                // TODO --> Comprobar que todos los vecinos sean distintos
-                System.out.println(aux.toString() + "\n");
-            }while (listaTabuContiene(aux)); // TODO --> Comprobar que no está en la lista tabú ni en la lista de generados
-
-            vecino.setVariableValue(posicionAleatoria, aux);
-            //}
+                variableMutada = mutate(vecino.getVariableValue(posicionAleatoria));
+                //System.out.println(variableMutada.toString() + "\n");
+            }while (listaTabu.contains(variableMutada) && generados.contains(variableMutada));
+            
+            // Una vez tenemos la variable mutada (que cumple las restricciones), la sustituimos por la elegida anteriormente
+            vecino.setVariableValue(posicionAleatoria, variableMutada);
             
             // Evaluamos al vecino recien mutado
             List<BinarySolution> listaCalidadVecino = new ArrayList<>();
             listaCalidadVecino.add(vecino);
             double calidadVecino = evaluate(this.initialSolution, listaCalidadVecino, this.evaluador, new WRAccNorm());
             
-            // Verificamos que es valido (que no se haya generado ya)
+            // Verificamos que es el mejor vecino, y si lo es:
             if (calidadVecino > mejorCalidad) {
+                // - Sustituimos la mejor calidad
                 mejorCalidad = calidadVecino;
+                // - Limpiamos la estructura a retornar
                 ret.clear();
+                // - Metemos el mejor vecino hasta ahora
                 ret.add(vecino);
+                // - Sustituimos la variable tabú candidata
+                variableTabuCandidata = variableMutada;
             }
             
         }
         
-        for (int i = 0; i < ret.get(0).getNumberOfVariables(); i++) {
-            
-            BinarySet set = ret.get(0).getVariableValue(i);
-            
-            // Solo metemos el BinarySet si no existe.
-            if (!listaTabuContiene(set))
-                listaTabu.put(set, 1); // TODO CAMBIAR
-            
-        }
-        
+        // Incluimos la variable tabú candidata en la lista tabú
+        listaTabu.put(variableTabuCandidata, tenenciaMaxima); // TODO --> Hacer la tenencia máxima
         
         return ret;
     }
