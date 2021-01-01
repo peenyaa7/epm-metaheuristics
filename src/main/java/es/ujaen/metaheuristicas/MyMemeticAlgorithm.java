@@ -89,12 +89,15 @@ public class MyMemeticAlgorithm extends NSGAII<BinarySolution>{
             }
             
             // Aplicamos la BL al 25% de individuos
-            bl.doLocalSearch(problema.getFuzzySets(), choosen, (EvaluatorIndDNF)evaluator);
-            
+            System.out.println("Comenzando BL en la evaluación "+evaluacion);
+            System.out.println(choosen.toString());
+            choosen = bl.doLocalSearch(problema.getFuzzySets(), choosen, (EvaluatorIndDNF)evaluator);
+            System.out.println(choosen.toString());
+            System.out.println("Terminada BL: "+evaluacion);
             offspringPopulation.addAll(choosen);
         }
         evaluacion+=this.maxPopulationSize;
-        System.out.println(evaluacion);
+        
         // Finalmente, debemos llamar SIEMPRE a super() para realizar el proceso de reemplazo original
         return super.replacement(population, offspringPopulation); //To change body of generated methods, choose Tools | Templates.
     }
