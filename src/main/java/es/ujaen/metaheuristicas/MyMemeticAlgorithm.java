@@ -92,7 +92,7 @@ public class MyMemeticAlgorithm extends NSGAII<BinarySolution>{
             // Aplicamos la BL al 25% de individuos
             System.out.println("Comenzando BL en la evaluación "+evaluacion);
             offspringPopulation = bl.doLocalSearch(problema.getFuzzySets(), offspringPopulation, (EvaluatorIndDNF)evaluator);
-            System.out.println("Terminada BL: "+evaluacion);
+            System.out.println("\n\n");
             //offspringPopulation.addAll(choosen);
         }
         evaluacion+=this.maxPopulationSize;

@@ -181,31 +181,43 @@ public class LocalSearch {
         int posPeor = -1, posMejor = -1;
         double calidadMejor = Double.MIN_VALUE;
         double calidadPeor = Double.MAX_VALUE;
+        int sinTabla = 0;
         
         // Buscamos el mejor y el peor de la población
         for (int i = 0; i < currentPopulation.size(); i++) {
             
-            // Creamos una lista unitaria conformada por el agente actual
-            List<BinarySolution> listaUnitariaAgente = new ArrayList<>();
-            listaUnitariaAgente.add(currentPopulation.get(i));
-            
-            // Calculamos la calidad del agente actual
-            double calidad = evaluate(initialSolution, listaUnitariaAgente, evaluator, new WRAccNorm());
-            
-            // Guardamos el mejor
-            if (calidad > calidadMejor) {
-                calidadMejor = calidad;
-                posMejor = i;
-                referenciaAlMejor = currentPopulation.get(i);
+            if (currentPopulation.get(i).getAttribute(ContingencyTable.class) != null) {
+                
+                // Creamos una lista unitaria conformada por el agente actual
+                List<BinarySolution> listaUnitariaAgente = new ArrayList<>();
+                listaUnitariaAgente.add(currentPopulation.get(i));
+
+                // Calculamos la calidad del agente actual
+                double calidad = evaluate(initialSolution, listaUnitariaAgente, evaluator, new WRAccNorm());
+
+                // Guardamos el mejor
+                if (calidad > calidadMejor) {
+                    calidadMejor = calidad;
+                    posMejor = i;
+                    referenciaAlMejor = currentPopulation.get(i);
+                }
+                if (calidad < calidadPeor){
+                    calidadPeor = calidad;
+                    posPeor = i;
+                }
+                
+            } else {
+                //System.out.println("Individuo " + i + " no posee tabla de contingencias.");
+                sinTabla++;
             }
-            if (calidad < calidadPeor){
-                calidadPeor = calidad;
-                posPeor = i;
-            }
+            
             
         }
         
-        System.out.println("Mejor individuo --> " + referenciaAlMejor.toString());
+        if (sinTabla > 0)
+            System.out.println("Se han detectado " + sinTabla + " individuos sin tabla de contingecias.");
+        
+        //System.out.println("Mejor individuo --> " + referenciaAlMejor.toString());
         
         BinarySolution mejorAgenteBL = null;
         
@@ -216,7 +228,7 @@ public class LocalSearch {
         
         double calidadBL = evaluate(initialSolution, listaUnitariaAgente, evaluator, new WRAccNorm());
         
-        System.out.println("CALIDAD ANTERIOR -> "+calidadMejor+" :: CALIDAD BL -> "+calidadBL);
+        //System.out.println("CALIDAD ANTERIOR -> "+calidadMejor+" :: CALIDAD BL -> "+calidadBL);
         
         // Firstly, evaluate de initial population
         //double initialQuality = evaluate(initialSolution, currentPopulation, evaluator, new WRAccNorm());
@@ -227,10 +239,12 @@ public class LocalSearch {
         
         
         if (calidadBL > calidadPeor){
-            System.out.println("Cambiando mejor Agente del BL ("+calidadBL+") por el peor ("+calidadPeor+"). POSICION = "+posPeor);
-            System.out.println("PEOR : "+currentPopulation.get(posPeor).toString());
+            System.out.println("La busqueda local ha conseguido mejorar un agente. Calidad antigua (" + calidadPeor + ") - Calidad nueva (" + calidadBL + ")");
+            //System.out.println("PEOR : "+currentPopulation.get(posPeor).toString());
             currentPopulation.set(posPeor, mejorAgenteBL);
-            System.out.println("MEJOR : "+mejorAgenteBL.toString());
+            //System.out.println("MEJOR : "+mejorAgenteBL.toString());
+        } else {
+            System.out.println("No se ha conseguido mejorar al agente.");
         }
             
         
@@ -334,7 +348,7 @@ public class LocalSearch {
             
             // Si mejora, sustituimos las variables elites y reiniciamos el contador de intentos de mejora
             if (calidad > calidadElite) {
-                System.out.println("VECINO MEJORADO | Calidad anterior: " + calidadElite + " | Calidad nueva: " + calidad);
+                //System.out.println("VECINO MEJORADO | Calidad anterior: " + calidadElite + " | Calidad nueva: " + calidad);
                 agenteElite = (BinarySolution) agenteActual.copy();
                 calidadElite = calidad;
                 intentoMejora = 0;
@@ -378,7 +392,7 @@ public class LocalSearch {
         
         
         
-        System.out.println("Limpiando Estructuras de lista tabú y MLP...");
+        //System.out.println("Limpiando Estructuras de lista tabú y MLP...");
         /*LISTA TABÚ.*/
         listaTabu.clear();
         for (int i = 0; i < tenenciaMaxima; i++)
