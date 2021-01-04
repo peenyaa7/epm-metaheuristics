@@ -30,6 +30,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import javafx.util.Pair;
 import org.uma.jmetal.solution.BinarySolution;
 import org.uma.jmetal.util.binarySet.BinarySet;
@@ -88,7 +89,7 @@ public class LocalSearch {
     private EvaluatorIndDNF evaluador;
     
     
-    
+    private Random random;
     /**
      * Guarda las veces que sale un BinarySet
      */
@@ -115,6 +116,7 @@ public class LocalSearch {
         
         this.initialSolution = null;
         this.evaluador = null;
+        random = new Random(77433569);
     }
     
     
@@ -250,7 +252,7 @@ public class LocalSearch {
         // TODO: AQUI DEBÉIS DE CREAR EL NUEVO VECINO PARA INCLUIRLO EN LA SOLUCIÓN
         
         for (int j = 0; j < f.getBinarySetLength(); j++) {
-            if (Math.random() < probabilidadMutacion) {
+            if (random.nextFloat() < probabilidadMutacion) {
                 f.flip(j);
             }
         }
@@ -296,7 +298,7 @@ public class LocalSearch {
          *          Si no es mejor:
          *              IntentoMejora++ (HECHO)
          *              Si han pasado X iteraciones sin mejora:
-         *                  *REINICIALIZACION* (DUDA A ANGEL)
+         *                  *REINICIALIZACION* (DUDA A ANGEL: LO TENEMOS BIEN PLANTEADO)
          *                  intentoMejora = 0
          */
         
@@ -423,7 +425,7 @@ public class LocalSearch {
             BinarySolution vecino = (BinarySolution) currentBinarySolution.copy();
             
             // Elegimos de forma aleatoria la variable a modificar. //TODO: No deberiamos hacerlo así porque no nos generará resultados que podamos repetir.
-            int posicionAleatoria = (int) (Math.random() * currentBinarySolution.getNumberOfVariables());
+            int posicionAleatoria = (int) (random.nextFloat() * currentBinarySolution.getNumberOfVariables());
             
             // Mutamos dicha variable (considerando restricciones)
             BinarySet variableMutada = null;
