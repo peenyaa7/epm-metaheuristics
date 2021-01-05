@@ -132,13 +132,14 @@ public class Main implements Callable<Integer> {
         // The full population (the one with patterns for all classes)
         List<BinarySolution> fullPopulation = new ArrayList<>();
         for (int clazz = 0; clazz < problem.getNumberOfClasses(); clazz++) {  // Run the algorithm for each class of the problem
-
+            
             logger.info("Running class " + clazz);
 
             // Set the class of the population
             problem.setClass(clazz);
 
             // Create the algorithm
+           
             // NOTE:  Replace this with your own ALGORITHM CONSTRUCTOR !!!!!
             MyMemeticAlgorithm algorithm = new MyMemeticAlgorithm(problem, maxEvaluations, populationSize, populationSize, populationSize, (CrossoverOperator) crossover, mutation, selection,  (SequentialSolutionListEvaluator<BinarySolution>) problem.getEvaluator());
 

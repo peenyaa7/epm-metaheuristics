@@ -69,32 +69,34 @@ public class MyMemeticAlgorithm extends NSGAII<BinarySolution>{
         
         // AQUI DEBEMOS JUGAR CON offspringPopulation aplicando la BL.
         // Entramos cada 20% de evaluaciones
-        if (evaluacion % Math.round(0.2*maxEvaluations) == 0) {
+        
+        if ( evaluacion % Math.round(0.2*maxEvaluations) == 0) {
             
             // Extraemos el 25% del offspringPopulation
-            List<BinarySolution> choosen = new  ArrayList<>(); //<-- EEDD que mantiene las posiciones escogidas
+            //List<BinarySolution> choosen = new  ArrayList<>(); //<-- EEDD que mantiene las posiciones escogidas
             Problema problema = (Problema) problem;
             LocalSearch bl = new LocalSearch(problema);
             
-            int individuoBLSize = (int) Math.round(0.25*offspringPopulationSize);
-            while (choosen.size() < individuoBLSize) {
-                
-                // Obtenemos el individuo
-                BinarySolution individuo = offspringPopulation.remove((int)Math.random()*(offspringPopulation.size() - 1));
-                
-                
-                // Lo metemos en la EEDD
-                choosen.add(individuo);
-                
-            }
+//            int individuoBLSize = (int) Math.round(0.25*offspringPopulationSize);
+//            while (choosen.size() < individuoBLSize) {
+//                
+//                // Obtenemos el individuo
+//                BinarySolution individuo = offspringPopulation.remove((int)Math.random()*(offspringPopulation.size() - 1));
+//                
+//                
+//                // Lo metemos en la EEDD
+//                choosen.add(individuo);
+//                
+//            }
             
             // Aplicamos la BL al 25% de individuos
-            bl.doLocalSearch(problema.getFuzzySets(), choosen, (EvaluatorIndDNF)evaluator);
-            
-            offspringPopulation.addAll(choosen);
+            System.out.println("Comenzando BL en la evaluación "+evaluacion);
+            offspringPopulation = bl.doLocalSearch(problema.getFuzzySets(), offspringPopulation, (EvaluatorIndDNF)evaluator);
+            System.out.println("\n\n");
+            //offspringPopulation.addAll(choosen);
         }
         evaluacion+=this.maxPopulationSize;
-        System.out.println(evaluacion);
+        
         // Finalmente, debemos llamar SIEMPRE a super() para realizar el proceso de reemplazo original
         return super.replacement(population, offspringPopulation); //To change body of generated methods, choose Tools | Templates.
     }
