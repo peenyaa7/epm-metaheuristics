@@ -143,14 +143,6 @@ public class LocalSearch {
         
         /**
          * AQUI ES DONDE DEBE DE IR VUESTRO CÓDIGO RELATIVO A LA CREACIÓN DE UNA BÚSQUEDA LOCAL.
-         * En la búsqueda tabú global:
-         * 
-         * 1. Por cada 'agente' de la lista de currentPopulation
-         * 1.1. Aplicamos la *BUSQUEDA TABU INDIVIDUAL* al 'agente'
-         * 1.2. DUDA 2
-         * 
-         * 
-         * 
          * En *BUSQUEDA TABU INDIVIDUAL*:
          * 
          * Por cada 'iteracion' en 'maxIteraciones':
@@ -165,14 +157,6 @@ public class LocalSearch {
          *              Si han pasado X iteraciones sin mejora:
          *                  *REINICIALIZACION*
          *                  intentoMejora = 0
-         * 
-         * 
-         * EN *REINICIALIZACION*
-         * 
-         * DUDA 3
-         * Si la 'estrategia' es 'intensificacion':
-         *      Escogemos el 25% de los pares más repetidos
-         * 
          * 
          */
         
@@ -217,7 +201,6 @@ public class LocalSearch {
         if (sinTabla > 0)
             System.out.println("Se han detectado " + sinTabla + " individuos sin tabla de contingecias.");
         
-        //System.out.println("Mejor individuo --> " + referenciaAlMejor.toString());
         
         BinarySolution mejorAgenteBL = null;
         
@@ -228,21 +211,16 @@ public class LocalSearch {
         
         double calidadBL = evaluate(initialSolution, listaUnitariaAgente, evaluator, new WRAccNorm());
         
-        //System.out.println("CALIDAD ANTERIOR -> "+calidadMejor+" :: CALIDAD BL -> "+calidadBL);
         
         // Firstly, evaluate de initial population
         //double initialQuality = evaluate(initialSolution, currentPopulation, evaluator, new WRAccNorm());
-        
-        //System.out.println("\n\n\n\n\nEvaluación:" + initialQuality + "\n\n\n\n\n");
         
         // IMPORTANTE: CLONAR INITIAL SOLUTION PARA QUE NO OCURRAN COSAS EXTRAÑAS.
         
         
         if (calidadBL > calidadPeor){
             System.out.println("La busqueda local ha conseguido mejorar un agente. Calidad antigua (" + calidadPeor + ") - Calidad nueva (" + calidadBL + ")");
-            //System.out.println("PEOR : "+currentPopulation.get(posPeor).toString());
             currentPopulation.set(posPeor, mejorAgenteBL);
-            //System.out.println("MEJOR : "+mejorAgenteBL.toString());
         } else {
             System.out.println("No se ha conseguido mejorar al agente.");
         }
@@ -323,7 +301,7 @@ public class LocalSearch {
         
         
         for (int iteracion = 0; iteracion < maxIteraciones; iteracion++) {
-             
+            
             //Método que evalua N vecinos y saca el mejor de ellos por parámetro retornando su calidad (DENTRO SE HACE LA ACTUALIZACIÓN DE LA LISTA TABÚ)
             Pair<BinarySolution,Double> parVecinoCalidad  = calculateBestNeighbour((BinarySolution) agenteActual.copy());
             
@@ -387,8 +365,11 @@ public class LocalSearch {
         
         
         int k = memoriaLargoPlazo.size()-1;
-        for (int i = 0; i < currentBinarySolution.getNumberOfVariables(); i++)
-            currentBinarySolution.setVariableValue(i, memoriaLargoPlazo.get(k--).getKey());
+        for (int i = 0; i < currentBinarySolution.getNumberOfVariables(); i++){
+            if (k < 0) break;
+            BinarySet aux = memoriaLargoPlazo.get(k--).getKey();
+            currentBinarySolution.setVariableValue(i, aux);
+        }
         
         
         
@@ -443,10 +424,12 @@ public class LocalSearch {
             
             // Mutamos dicha variable (considerando restricciones)
             BinarySet variableMutada = null;
+            int num_intentos = 0;
             do{
                 variableMutada = mutate(vecino.getVariableValue(posicionAleatoria));
-                //System.out.println(variableMutada.toString() + "\n");
-            }while (listaTabu.contains(variableMutada) && generados.contains(variableMutada));
+                num_intentos++;
+                if (num_intentos > maxIntentos) break;
+            }while (listaTabu.contains(variableMutada) || generados.contains(variableMutada) );
             
             // Una vez tenemos la variable mutada (que cumple las restricciones), la sustituimos por la elegida anteriormente
             vecino.setVariableValue(posicionAleatoria, variableMutada);
