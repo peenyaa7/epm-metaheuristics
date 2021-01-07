@@ -141,7 +141,7 @@ public class Main implements Callable<Integer> {
             // Create the algorithm
            
             // NOTE:  Replace this with your own ALGORITHM CONSTRUCTOR !!!!!
-            MyMemeticAlgorithm algorithm = new MyMemeticAlgorithm(problem, maxEvaluations, populationSize, populationSize, populationSize, (CrossoverOperator) crossover, mutation, selection,  (SequentialSolutionListEvaluator<BinarySolution>) problem.getEvaluator());
+            MyMemeticAlgorithm algorithm = new MyMemeticAlgorithm(problem, maxEvaluations, populationSize, populationSize, populationSize, (CrossoverOperator) crossover, mutation, selection,dominanceComparator.reversed(),  (SequentialSolutionListEvaluator<BinarySolution>) problem.getEvaluator());
 
             // Execute the algorithm
             AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();

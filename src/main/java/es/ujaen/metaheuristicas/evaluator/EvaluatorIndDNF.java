@@ -115,6 +115,8 @@ public class EvaluatorIndDNF extends Evaluator {
                     ind.setObjective(i, measures.get(i).getValue());
                 }
             } else {
+                ContingencyTable table = new ContingencyTable(0,0,0,0);
+                ind.setAttribute(ContingencyTable.class, table);
                 for (int i = 0; i < ind.getNumberOfObjectives(); i++) {
                     ind.setObjective(i, Double.NEGATIVE_INFINITY);
                 }
