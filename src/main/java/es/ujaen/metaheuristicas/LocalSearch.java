@@ -95,6 +95,27 @@ public class LocalSearch {
      */
     private ArrayList<Pair<BinarySet,Integer>> memoriaLargoPlazo;
     
+    
+    /**
+         * AQUI ES DONDE DEBE DE IR VUESTRO CÓDIGO RELATIVO A LA CREACIÓN DE UNA BÚSQUEDA LOCAL.
+         * En *BUSQUEDA TABU INDIVIDUAL*:
+         * 
+         * Por cada 'iteracion' en 'maxIteraciones':
+         *      Generamos los 'vecinos' del 'agenteActual'
+         *      Evaluamos los 'vecinos' y nos quedamos con el 'mejorVecino'
+         *      Sustituimos el 'agenteActual' por el 'mejorVecino' (teniendo en cuenta, que puede ser peor)
+         *      Actualizar la 'memoriaLargoPlazo' con los elementos de 'agenteActual' (teniendo en cuenta de que se acaba de sustituir)
+         *      Comprobar que el 'agenteActual' es mejor o no que el 'agenteElite' (cambiandolo en caso de mejora)
+         *          Si es mejor, intentoMejora = 0
+         *          Si no es mejor:
+         *              IntentoMejora++
+         *              Si han pasado X iteraciones sin mejora:
+         *                  *REINICIALIZACION*
+         *                  intentoMejora = 0
+         * 
+         */
+    
+    
     /**
      * Default constructor with an associated problem
      * @param problem 
@@ -107,10 +128,7 @@ public class LocalSearch {
         this.probabilidadMutacion = 0.1;
         this.maxIntentos = (int) Math.round(this.maxIteraciones * LocalSearch.porcentajeMAXIntentos); //25% del maximo de Iteraciones
         
-        //this.tenenciaMaxima = 5;
-        
         this.problem = problem;
-        //this.listaTabu = new Hashtable<>();
         this.listaTabu = new LinkedList<>();
         this.memoriaLargoPlazo = new ArrayList<>();
         
@@ -137,29 +155,7 @@ public class LocalSearch {
         /*CARGAR TENENCIA MÁXIMA Y LA LISTA TABÚ DE VARIABLES*/
         this.tenenciaMaxima = (int) Math.ceil(currentPopulation.get(0).getNumberOfVariables()* LocalSearch.porcentajeTenencia);
         for(int i = 0; i < this.tenenciaMaxima; i++)
-            listaTabu.add(new BinarySet(0)); //COMO USARLO: Como la lista está siempre llena, una vez entran por el inicio (push) -> se saca por el final (pollLast)
-        
-        
-        
-        /**
-         * AQUI ES DONDE DEBE DE IR VUESTRO CÓDIGO RELATIVO A LA CREACIÓN DE UNA BÚSQUEDA LOCAL.
-         * En *BUSQUEDA TABU INDIVIDUAL*:
-         * 
-         * Por cada 'iteracion' en 'maxIteraciones':
-         *      Generamos los 'vecinos' del 'agenteActual'
-         *      Evaluamos los 'vecinos' y nos quedamos con el 'mejorVecino'
-         *      Sustituimos el 'agenteActual' por el 'mejorVecino' (teniendo en cuenta, que puede ser peor)
-         *      Actualizar la 'memoriaLargoPlazo' con los elementos de 'agenteActual' (teniendo en cuenta de que se acaba de sustituir)
-         *      Comprobar que el 'agenteActual' es mejor o no que el 'agenteElite' (cambiandolo en caso de mejora)
-         *          Si es mejor, intentoMejora = 0
-         *          Si no es mejor:
-         *              IntentoMejora++
-         *              Si han pasado X iteraciones sin mejora:
-         *                  *REINICIALIZACION*
-         *                  intentoMejora = 0
-         * 
-         */
-        
+            listaTabu.add(new BinarySet(0)); 
         
         BinarySolution referenciaAlMejor = null;
         int posPeor = -1, posMejor = -1;
@@ -167,6 +163,8 @@ public class LocalSearch {
         double calidadPeor = Double.MAX_VALUE;
         int sinTabla = 0;
         
+        /*CAMBIO ::: Index y calidad del agente*/
+        ArrayList< Pair<Integer,Double>> agente_calidad  = new ArrayList<>();
         // Buscamos el mejor y el peor de la población
         for (int i = 0; i < currentPopulation.size(); i++) {
             
@@ -178,7 +176,8 @@ public class LocalSearch {
 
                 // Calculamos la calidad del agente actual
                 double calidad = evaluate(initialSolution, listaUnitariaAgente, evaluator, new WRAccNorm());
-
+                agente_calidad.add(new Pair<>(i,calidad));
+                
                 // Guardamos el mejor
                 if (calidad > calidadMejor) {
                     calidadMejor = calidad;
@@ -190,39 +189,34 @@ public class LocalSearch {
                     posPeor = i;
                 }
                 
-            } else {
-                //System.out.println("Individuo " + i + " no posee tabla de contingencias.");
+            } else 
                 sinTabla++;
-            }
-            
             
         }
         
         if (sinTabla > 0)
             System.out.println("Se han detectado " + sinTabla + " individuos sin tabla de contingecias.");
         
-        
-        BinarySolution mejorAgenteBL = null;
-        
-        mejorAgenteBL = busquedaLocal(referenciaAlMejor, calidadMejor);
-        
-        List<BinarySolution> listaUnitariaAgente = new ArrayList<>();
-        listaUnitariaAgente.add(mejorAgenteBL);
-        
-        double calidadBL = evaluate(initialSolution, listaUnitariaAgente, evaluator, new WRAccNorm());
+        agente_calidad.sort((o1,o2) -> o1.getValue().compareTo(o2.getValue())); ;
+        System.out.println(agente_calidad);
         
         
-        // Firstly, evaluate de initial population
-        //double initialQuality = evaluate(initialSolution, currentPopulation, evaluator, new WRAccNorm());
+        for (int i = agente_calidad.size()-1; i >= agente_calidad.size() - 4; i--){
+            BinarySolution mejorAgenteBL = null;
+            int indexAgenteActual = agente_calidad.get(i).getKey();
+            mejorAgenteBL = busquedaLocal(currentPopulation.get(indexAgenteActual), calidadMejor);
+     
+            List<BinarySolution> listaUnitariaAgente = new ArrayList<>();
+            listaUnitariaAgente.add(mejorAgenteBL);
         
-        // IMPORTANTE: CLONAR INITIAL SOLUTION PARA QUE NO OCURRAN COSAS EXTRAÑAS.
+            double calidadBL = evaluate(initialSolution, listaUnitariaAgente, evaluator, new WRAccNorm());
         
-        
-        if (calidadBL > calidadPeor){
-            System.out.println("La busqueda local ha conseguido mejorar un agente. Calidad antigua (" + calidadPeor + ") - Calidad nueva (" + calidadBL + ")");
-            currentPopulation.set(posPeor, mejorAgenteBL);
-        } else {
-            System.out.println("No se ha conseguido mejorar al agente.");
+            if (calidadBL > agente_calidad.get(i).getValue()){
+                System.out.println("La busqueda local ha conseguido mejorar un agente. Calidad antigua (" + calidadPeor + ") - Calidad nueva (" + calidadBL + ")");
+                currentPopulation.set(indexAgenteActual, mejorAgenteBL);
+            } else {
+                System.out.println("No se ha conseguido mejorar al agente.");
+            }
         }
             
         
