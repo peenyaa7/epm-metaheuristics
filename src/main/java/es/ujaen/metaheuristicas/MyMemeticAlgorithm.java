@@ -64,7 +64,7 @@ public class MyMemeticAlgorithm extends NSGAII<BinarySolution>{
             SolutionListEvaluator<BinarySolution> evaluator
         ) {
         super(problem, maxEvaluations, populationSize, matingPoolSize, offspringPopulationSize, crossoverOperator, mutationOperator, selectionOperator,dominanceComparator, evaluator);
-        evaluacion = 0;
+        evaluacion = this.maxPopulationSize;
     }
 
     @Override
