@@ -19,6 +19,7 @@ package es.ujaen.metaheuristicas;
 import es.ujaen.metaheuristicas.evaluator.EvaluatorIndDNF;
 import es.ujaen.metaheuristicas.fuzzy.FuzzySet;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -28,6 +29,7 @@ import org.uma.jmetal.operator.MutationOperator;
 import org.uma.jmetal.operator.SelectionOperator;
 import org.uma.jmetal.problem.Problem;
 import org.uma.jmetal.solution.BinarySolution;
+import org.uma.jmetal.util.comparator.DominanceComparator;
 import org.uma.jmetal.util.evaluator.SolutionListEvaluator;
 
 /**
@@ -58,9 +60,10 @@ public class MyMemeticAlgorithm extends NSGAII<BinarySolution>{
             CrossoverOperator<BinarySolution> crossoverOperator,
             MutationOperator<BinarySolution> mutationOperator,
             SelectionOperator<List<BinarySolution>, BinarySolution> selectionOperator,
+            Comparator<BinarySolution> dominanceComparator,
             SolutionListEvaluator<BinarySolution> evaluator
         ) {
-        super(problem, maxEvaluations, populationSize, matingPoolSize, offspringPopulationSize, crossoverOperator, mutationOperator, selectionOperator, evaluator);
+        super(problem, maxEvaluations, populationSize, matingPoolSize, offspringPopulationSize, crossoverOperator, mutationOperator, selectionOperator,dominanceComparator, evaluator);
         evaluacion = 0;
     }
 
