@@ -163,7 +163,7 @@ public class LocalSearch {
         double calidadPeor = Double.MAX_VALUE;
         int sinTabla = 0;
         
-        /*CAMBIO ::: Index y calidad del agente*/
+        /*CAMBIO ::: Index del BinarySolution y calidad del agente*/
         ArrayList< Pair<Integer,Double>> agente_calidad  = new ArrayList<>();
         // Buscamos el mejor y el peor de la población
         for (int i = 0; i < currentPopulation.size(); i++) {
@@ -200,23 +200,32 @@ public class LocalSearch {
         agente_calidad.sort((o1,o2) -> o1.getValue().compareTo(o2.getValue())); ;
         System.out.println(agente_calidad);
         
-        
-        for (int i = agente_calidad.size()-1; i >= agente_calidad.size() - 4; i--){
-            BinarySolution mejorAgenteBL = null;
-            int indexAgenteActual = agente_calidad.get(i).getKey();
-            mejorAgenteBL = busquedaLocal(currentPopulation.get(indexAgenteActual), calidadMejor);
-     
-            List<BinarySolution> listaUnitariaAgente = new ArrayList<>();
-            listaUnitariaAgente.add(mejorAgenteBL);
-        
-            double calidadBL = evaluate(initialSolution, listaUnitariaAgente, evaluator, new WRAccNorm());
-        
-            if (calidadBL > agente_calidad.get(i).getValue()){
-                System.out.println("La busqueda local ha conseguido mejorar un agente. Calidad antigua (" + calidadPeor + ") - Calidad nueva (" + calidadBL + ")");
-                currentPopulation.set(indexAgenteActual, mejorAgenteBL);
-            } else {
-                System.out.println("No se ha conseguido mejorar al agente.");
+        int k = agente_calidad.size()-1;
+        boolean aplicada_BT = false;
+        double ult_calidad_evaluada = Double.MIN_VALUE;
+        int num_BT = 0;
+        while (!aplicada_BT && num_BT < 3){
+            if (ult_calidad_evaluada != agente_calidad.get(k).getValue()){
+                BinarySolution mejorAgenteBL = null;
+                int indexAgenteActual = agente_calidad.get(k).getKey();
+                mejorAgenteBL = busquedaLocal(currentPopulation.get(indexAgenteActual), agente_calidad.get(k).getValue());
+                num_BT++;
+                List<BinarySolution> listaUnitariaAgente = new ArrayList<>();
+                listaUnitariaAgente.add(mejorAgenteBL);
+
+                double calidadBL = evaluate(initialSolution, listaUnitariaAgente, evaluator, new WRAccNorm());
+
+                if (calidadBL > agente_calidad.get(k).getValue()){
+                    System.out.println("La busqueda local ha conseguido mejorar un agente. Calidad antigua (" + agente_calidad.get(k).getValue() + ") - Calidad nueva (" + calidadBL + ")");
+                    currentPopulation.set(posPeor, mejorAgenteBL);
+                    currentPopulation.set(agente_calidad.get(k).getKey(), mejorAgenteBL);
+                    aplicada_BT = true;
+                } else {
+                    System.out.println("No se ha conseguido mejorar al agente.");
+                }
+                ult_calidad_evaluada = agente_calidad.get(k).getValue();
             }
+            k--;
         }
             
         
